@@ -1,72 +1,49 @@
 #include "player.h"
 
-//==============================
 // Kích thước máy bay
-//==============================
+int playerWidth = 48;
+int playerHeight = 48;
 
-int playerWidth = 40;
-int playerHeight = 30;
-
-//==============================
 // Vị trí
-//==============================
-
 int playerX;
 int playerY;
 
-//==============================
 // Tốc độ
-//==============================
-
 int playerSpeed = 8;
 
-//==============================
 // HUD
-//==============================
-
 int score;
 int lives;
 int level;
+int playerImmunityTimer = 0;
 
-//==============================
 // Khởi tạo
-//==============================
-
 void initPlayer()
 {
-    playerX = 380;
-    playerY = 520;
-
+    playerX = 376;
+    playerY = 500;
     score = 0;
     lives = 3;
     level = 1;
+    playerImmunityTimer = 0;
 }
 
-//==============================
 // Reset
-//==============================
-
 void resetPlayer()
 {
     initPlayer();
 }
 
-//==============================
 // Cập nhật
-//==============================
-
 void updatePlayer()
 {
-    // Sau này Thành viên 2 sẽ cập nhật:
-    // - Va chạm
-    // - Tăng điểm
-    // - Lên Level
+    if (playerImmunityTimer > 0)
+    {
+        playerImmunityTimer--;
+    }
 }
 
-//==============================
 // Sang trái
-//==============================
-
 void moveLeft()
 {
     playerX -= playerSpeed;
@@ -77,10 +54,7 @@ void moveLeft()
     }
 }
 
-//==============================
 // Sang phải
-//==============================
-
 void moveRight()
 {
     playerX += playerSpeed;

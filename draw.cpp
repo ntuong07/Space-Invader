@@ -1,200 +1,183 @@
 #include "draw.h"
+
 #include "player.h"
+#include "enemy.h"
+#include "bullet.h"
+#include "file.h"
 
+#include <QBrush>
 #include <QFont>
-#include <QColor>
-#include <QString>
+#include <QPen>
 
-//==============================
-// Vẽ nền
-//==============================
 void drawBackground(QPainter &painter)
 {
-    painter.fillRect(0,0,800,600,QColor(10,10,30));
+    //Tô màu nền
+    painter.fillRect(0, 0, 800, 600, QColor(10, 10, 25));
 
-    painter.setPen(Qt::white);
+    painter.setPen(Qt::NoPen);
 
-    for(int i=0;i<120;i++)
+    //Vẽ các ngôi sao
+    painter.setBrush(QColor(240, 240, 255));
+    for (int i = 0; i < 35; i++)
     {
-        int x=(i*67)%800;
-        int y=(i*41)%600;
+        int x = (i * 137) % 800;
+        int y = (i * 73) % 600;
+        painter.drawRect(x, y, 3, 3);
+    }
 
-        painter.drawPoint(x,y);
+    //Vẽ các tiểu hành tinh
+    const int pSize = 2;
+
+    //Hỏa tinh đỏ
+    int p1X = 150;
+    int p1Y = 120;
+    const int planetRed[8][8] = {
+        {0,0,1,1,1,1,0,0},
+        {0,1,1,2,1,1,1,0},
+        {1,1,2,2,1,1,1,1},
+        {1,1,2,1,1,1,1,1},
+        {1,1,1,1,1,1,1,1},
+        {1,1,1,1,1,1,1,1},
+        {0,1,1,1,1,1,1,0},
+        {0,0,1,1,1,1,0,0}
+    };
+    for(int r=0; r<8; r++) {
+        for(int c=0; c<8; c++) {
+            if(planetRed[r][c] == 1) {
+                painter.setBrush(QColor(180, 50, 50));
+                painter.drawRect(p1X + c*pSize, p1Y + r*pSize, pSize, pSize);
+            } else if(planetRed[r][c] == 2) {
+                painter.setBrush(QColor(230, 100, 100));
+                painter.drawRect(p1X + c*pSize, p1Y + r*pSize, pSize, pSize);
+            }
+        }
+    }
+
+    //Mộc tinh vàng
+    int p2X = 600;
+    int p2Y = 250;
+    const int planetYellow[6][6] = {
+        {0,0,1,1,0,0},
+        {0,1,1,1,1,0},
+        {1,1,1,1,1,1},
+        {1,1,1,1,1,1},
+        {0,1,1,1,1,0},
+        {0,0,1,1,0,0}
+    };
+    // Vẽ vành đai
+    painter.setBrush(QColor(230, 170, 70));
+    painter.drawRect(p2X - 4, p2Y + 5, 20, 2);
+
+    // Vẽ thân hành tinh
+    painter.setBrush(QColor(190, 130, 50));
+    for(int r=0; r<6; r++) {
+        for(int c=0; c<6; c++) {
+            if(planetYellow[r][c] == 1) {
+                painter.drawRect(p2X + c*pSize, p2Y + r*pSize, pSize, pSize);
+            }
+        }
+    }
+
+    //Thủy tinh xanh
+    int p3X = 280;
+    int p3Y = 450;
+    const int planetGreen[4][4] = {
+        {0,1,1,0},
+        {1,1,1,1},
+        {1,1,1,1},
+        {0,1,1,0}
+    };
+    painter.setBrush(QColor(50, 120, 90));
+    for(int r=0; r<4; r++) {
+        for(int c=0; c<4; c++) {
+            if(planetGreen[r][c] == 1) {
+                painter.drawRect(p3X + c*pSize, p3Y + r*pSize, pSize, pSize);
+            }
+        }
     }
 }
 
-//==============================
-// Vẽ máy bay
-//==============================
 void drawPlayer(QPainter &painter)
 {
+    if (playerImmunityTimer > 0)
+    {
+        if ((playerImmunityTimer % 8) < 4)
+        {
+            return;
+        }
+    }
     painter.setPen(Qt::NoPen);
 
-    // Thân
-    painter.setBrush(QColor(0,180,255));
-    painter.drawRoundedRect(playerX,playerY,40,25,4,4);
+    const int pixelSize = 4;
 
-    // Mũi
-    QPoint nose[3]=
-        {
-            QPoint(playerX+20,playerY-18),
-            QPoint(playerX+10,playerY),
-            QPoint(playerX+30,playerY)
-        };
+    const int sprite[12][12] = {
+        {0,0,0,0,0,1,1,0,0,0,0,0},
+        {0,0,0,0,1,3,3,1,0,0,0,0},
+        {0,0,0,0,1,3,3,1,0,0,0,0},
+        {0,0,0,1,2,1,1,2,1,0,0,0},
+        {0,0,0,1,2,1,1,2,1,0,0,0},
+        {0,1,1,1,1,1,1,1,1,1,1,0},
+        {1,2,2,1,2,2,2,2,1,2,2,1},
+        {1,2,2,1,1,1,1,1,1,2,2,1},
+        {1,1,1,1,0,0,0,0,1,1,1,1},
+        {0,1,1,0,0,0,0,0,0,1,1,0},
+        {0,0,0,0,4,0,0,4,0,0,0,0},
+        {0,0,0,4,4,0,0,4,4,0,0,0}
+    };
 
-    painter.setBrush(QColor(255,80,80));
-    painter.drawPolygon(nose,3);
+    QColor color1(29, 78, 216);
+    QColor color2(56, 189, 248);
+    QColor color3(250, 204, 21);
+    QColor color4(239, 68, 68);
 
-    // Cánh trái
-    QPoint leftWing[3]=
-        {
-            QPoint(playerX,playerY+8),
-            QPoint(playerX-15,playerY+18),
-            QPoint(playerX,playerY+20)
-        };
+    for (int row = 0; row < 12; ++row) {
+        for (int col = 0; col < 12; ++col) {
+            int colorType = sprite[row][col];
+            if (colorType == 0) continue;
 
-    painter.setBrush(QColor(0,220,255));
-    painter.drawPolygon(leftWing,3);
+            switch (colorType) {
+            case 1: painter.setBrush(color1); break;
+            case 2: painter.setBrush(color2); break;
+            case 3: painter.setBrush(color3); break;
+            case 4: painter.setBrush(color4); break;
+            }
 
-    // Cánh phải
-    QPoint rightWing[3]=
-        {
-            QPoint(playerX+40,playerY+8),
-            QPoint(playerX+55,playerY+18),
-            QPoint(playerX+40,playerY+20)
-        };
+            int xPos = playerX + (col * pixelSize);
+            int yPos = playerY + (row * pixelSize);
 
-    painter.drawPolygon(rightWing,3);
-
-    // Buồng lái
-    painter.setBrush(Qt::yellow);
-    painter.drawEllipse(playerX+15,playerY+5,10,10);
-
-    // Động cơ trái
-    painter.setBrush(Qt::gray);
-    painter.drawRect(playerX+5,playerY+25,8,6);
-
-    // Động cơ phải
-    painter.drawRect(playerX+27,playerY+25,8,6);
-
-    // Lửa động cơ
-    painter.setBrush(Qt::red);
-
-    painter.drawEllipse(playerX+6,playerY+31,6,8);
-    painter.drawEllipse(playerX+28,playerY+31,6,8);
+            painter.drawRect(xPos, yPos, pixelSize, pixelSize);
+        }
+    }
 }
 
-//==============================
-// HUD
-//==============================
 void drawHUD(QPainter &painter)
 {
     painter.setPen(Qt::white);
 
-    painter.setFont(QFont("Arial",12,QFont::Bold));
+    painter.setFont(QFont("Arial", 12, QFont::Bold));
 
-    painter.drawText(20,30,
-                     QString("Score : %1").arg(score));
+    painter.drawText(
+        10,
+        25,
+        QString("Score: %1").arg(score)
+        );
 
-    painter.drawText(20,55,
-                     QString("Lives : %1").arg(lives));
+    painter.drawText(
+        10,
+        50,
+        QString("Lives: %1").arg(lives)
+        );
 
-    painter.drawText(20,80,
-                     QString("Level : %1").arg(level));
-}
+    painter.drawText(
+        10,
+        75,
+        QString("Level: %1").arg(level)
+        );
 
-//==============================
-// Start Menu
-//==============================
-void drawStartScreen(QPainter &painter)
-{
-    painter.fillRect(0,0,800,600,QColor(10,10,30));
-
-    painter.setPen(Qt::cyan);
-
-    painter.setFont(QFont("Arial",30,QFont::Bold));
-
-    painter.drawText(QRect(0,80,800,50),
-                     Qt::AlignCenter,
-                     "SPACE INVADERS");
-
-    painter.setPen(Qt::white);
-
-    painter.setFont(QFont("Arial",18));
-
-    painter.drawText(QRect(0,220,800,40),
-                     Qt::AlignCenter,
-                     "Press ENTER to Start");
-
-    painter.drawText(QRect(0,260,800,40),
-                     Qt::AlignCenter,
-                     "Arrow Keys : Move");
-
-    painter.drawText(QRect(0,300,800,40),
-                     Qt::AlignCenter,
-                     "SPACE : Shoot");
-
-    painter.drawText(QRect(0,340,800,40),
-                     Qt::AlignCenter,
-                     "P : Pause");
-
-    painter.drawText(QRect(0,380,800,40),
-                     Qt::AlignCenter,
-                     "ESC : Exit");
-}
-
-//==============================
-// Pause
-//==============================
-void drawPauseScreen(QPainter &painter)
-{
-    painter.fillRect(0,0,800,600,QColor(0,0,0,150));
-
-    painter.setPen(Qt::yellow);
-
-    painter.setFont(QFont("Arial",28,QFont::Bold));
-
-    painter.drawText(QRect(0,220,800,50),
-                     Qt::AlignCenter,
-                     "PAUSED");
-
-    painter.setPen(Qt::white);
-
-    painter.setFont(QFont("Arial",16));
-
-    painter.drawText(QRect(0,280,800,40),
-                     Qt::AlignCenter,
-                     "Press P to Continue");
-}
-
-//==============================
-// Game Over
-//==============================
-void drawGameOverScreen(QPainter &painter)
-{
-    painter.fillRect(0,0,800,600,QColor(0,0,0,200));
-
-    painter.setPen(Qt::red);
-
-    painter.setFont(QFont("Arial",34,QFont::Bold));
-
-    painter.drawText(QRect(0,150,800,50),
-                     Qt::AlignCenter,
-                     "GAME OVER");
-
-    painter.setPen(Qt::white);
-
-    painter.setFont(QFont("Arial",18));
-
-    painter.drawText(QRect(0,240,800,40),
-                     Qt::AlignCenter,
-                     QString("Final Score : %1").arg(score));
-
-    painter.drawText(QRect(0,300,800,40),
-                     Qt::AlignCenter,
-                     "Press R to Restart");
-
-    painter.drawText(QRect(0,340,800,40),
-                     Qt::AlignCenter,
-                     "Press ESC to Exit");
+    painter.setPen(QColor(250, 204, 21));
+    painter.drawText(
+        650,
+        25,
+        QString("HighScore: %1").arg(highScore)
+        );
 }

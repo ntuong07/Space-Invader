@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QPainter>
 #include <QKeyEvent>
+#include <QSet>
 
 class GameWindow : public QWidget
 {
@@ -16,16 +17,20 @@ public:
 protected:
     void paintEvent(QPaintEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
 
 private slots:
     void updateGame();
 
 private:
-    QTimer timer;
+    QTimer *timer;
 
     bool gameStarted;
     bool gamePaused;
     bool gameOver;
+
+    QSet<int> keysPressed;
+    int bulletCooldown;
 };
 
-#endif // GUI_H
+#endif

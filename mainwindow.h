@@ -11,4 +11,4 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 };
-#endif // MAINWINDOW_H
+#endif

@@ -3,14 +3,13 @@
 
 #include <QPainter>
 
-// Giao diện game
+// Hàm cấu hình ma trận sao tự nhiên
+void initBackgroundStars();
+
 void drawBackground(QPainter &painter);
 void drawPlayer(QPainter &painter);
 void drawHUD(QPainter &painter);
-
-// Các màn hình
-void drawStartScreen(QPainter &painter);
-void drawPauseScreen(QPainter &painter);
-void drawGameOverScreen(QPainter &painter);
+void drawEnemies(QPainter &painter);
+void drawBullets(QPainter &painter);
 
 #endif
